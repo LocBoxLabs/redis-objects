@@ -19,12 +19,17 @@ class Redis
           if options[:global]
             instance_eval <<-EndMethods
               def #{name}
-                @#{name} ||= Redis::Value.new(redis_field_key(:#{name}), #{klass_name}.redis, #{klass_name}.redis_objects[:#{name}])
+                @#{name} ||= Redis::Value.new(redis_field_key(:#{name}), #{name}_redis, #{klass_name}.redis_objects[:#{name}])
               end
               def #{name}=(value)
                 #{name}.value = value
               end
             EndMethods
+            instance_eval do
+              define_singleton_method "#{name}_redis" do
+                options[:connection] || klass_name.constantize.redis
+              end
+            end
             class_eval <<-EndMethods
               def #{name}
                 self.class.#{name}
@@ -36,14 +41,18 @@ class Redis
           else
             class_eval <<-EndMethods
               def #{name}
-                @#{name} ||= Redis::Value.new(redis_field_key(:#{name}), #{klass_name}.redis, #{klass_name}.redis_objects[:#{name}])
+                @#{name} ||= Redis::Value.new(redis_field_key(:#{name}), #{name}_redis, #{klass_name}.redis_objects[:#{name}])
               end
               def #{name}=(value)
                 #{name}.value = value
               end
             EndMethods
+            class_eval do
+              define_method "#{name}_redis" do
+                options[:connection] || klass_name.constantize.redis
+              end
+            end
           end
-          
         end
       end
       

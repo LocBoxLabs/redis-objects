@@ -15,6 +15,7 @@ class Roster
   list :player_stats, :marshal => true
   set :outfielders, :marshal => true
   sorted_set :rank
+  hash_key :fans, :connection => Redis.new(:host => REDIS_HOST, :port => REDIS_PORT, :db => 6)
 
   # global class counters
   counter :total_players_online, :global => true
@@ -111,6 +112,11 @@ describe Redis::Objects do
   it "should provide a connection method" do
     Roster.redis.should == Redis::Objects.redis
     # Roster.redis.should.be.kind_of(Redis)
+  end
+  
+  it "should allow a different connection for a specific attribute" do
+    Roster.redis.should == @roster.total_wins.redis
+    Roster.redis.should != @roster.fans.redis
   end
 
   it "should support interpolation of key names" do

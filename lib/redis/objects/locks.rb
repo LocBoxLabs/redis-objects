@@ -22,9 +22,14 @@ class Redis
           if options[:global]
             instance_eval <<-EndMethods
               def #{lock_name}(&block)
-                @#{lock_name} ||= Redis::Lock.new(redis_field_key(:#{lock_name}), #{klass_name}.redis, #{klass_name}.redis_objects[:#{lock_name}])
+                @#{lock_name} ||= Redis::Lock.new(redis_field_key(:#{lock_name}), #{name}_redis, #{klass_name}.redis_objects[:#{lock_name}])
               end
             EndMethods
+            instance_eval do
+              define_singleton_method "#{name}_redis" do
+                options[:connection] || klass_name.constantize.redis
+              end
+            end
             class_eval <<-EndMethods
               def #{lock_name}(&block)
                 self.class.#{lock_name}(block)
@@ -33,9 +38,14 @@ class Redis
           else
             class_eval <<-EndMethods
               def #{lock_name}(&block)
-                @#{lock_name} ||= Redis::Lock.new(redis_field_key(:#{lock_name}), #{klass_name}.redis, #{klass_name}.redis_objects[:#{lock_name}])
+                @#{lock_name} ||= Redis::Lock.new(redis_field_key(:#{lock_name}), #{name}_redis, #{klass_name}.redis_objects[:#{lock_name}])
               end
             EndMethods
+            class_eval do
+              define_method "#{name}_redis" do
+                options[:connection] || klass_name.constantize.redis
+              end
+            end
           end
         end
 
