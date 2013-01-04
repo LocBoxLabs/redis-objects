@@ -117,6 +117,7 @@ describe Redis::Objects do
   it "should allow a different connection for a specific attribute" do
     Roster.redis.should == @roster.total_wins.redis
     Roster.redis.should != @roster.fans.redis
+    @roster.fans.redis.client.db.should == 6
   end
 
   it "should support interpolation of key names" do
